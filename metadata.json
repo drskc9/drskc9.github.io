@@ -1,0 +1,5 @@
+{
+  "name": "drskc9 Dashboard",
+  "description": "A minimalist, terminal-style dashboard for drskc9.github.io with clock, calendar, and command palette.",
+  "requestFramePermissions": []
+}

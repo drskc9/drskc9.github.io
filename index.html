@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>drskc9 // Dashboard</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --fg: #ffffff;
+            --accent: #333333;
+            --muted: #666666;
+            --highlight: #ffffff;
+            --font-mono: 'Consolas', 'Courier New', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-mono);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .site-info h1 {
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+            text-transform: lowercase;
+        }
+
+        .site-info p {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        #clock {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: -2px;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::after {
+            content: '';
+            height: 1px;
+            background: var(--accent);
+            flex: 1;
+        }
+
+        /* App Grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .app-card {
+            border: 1px solid var(--accent);
+            padding: 1.5rem;
+            text-decoration: none;
+            color: var(--fg);
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: transparent;
+        }
+
+        .app-card:hover {
+            background: var(--fg);
+            color: var(--bg);
+            border-color: var(--fg);
+        }
+
+        .app-card h3 {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .app-card p {
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        .app-card .icon {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Calendar */
+        .calendar-container {
+            position: sticky;
+            top: 2rem;
+        }
+
+        #calendar {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        #calendar th {
+            text-align: center;
+            padding: 0.5rem;
+            color: var(--muted);
+            font-weight: normal;
+        }
+
+        #calendar td {
+            text-align: center;
+            padding: 0.5rem;
+            border: 1px solid transparent;
+        }
+
+        #calendar .today {
+            background: var(--fg);
+            color: var(--bg);
+            font-weight: bold;
+        }
+
+        #calendar .other-month {
+            color: var(--accent);
+        }
+
+        #calendar-month-year {
+            margin-bottom: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Command Palette */
+        #palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            padding-top: 10vh;
+            z-index: 1000;
+        }
+
+        #palette {
+            width: 90%;
+            max-width: 600px;
+            background: #111;
+            border: 1px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            max-height: 60vh;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        #palette-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--accent);
+            color: var(--fg);
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            outline: none;
+        }
+
+        #palette-results {
+            overflow-y: auto;
+        }
+
+        .palette-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .palette-item.selected {
+            background: var(--fg);
+            color: var(--bg);
+        }
+
+        .palette-item .shortcut {
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--muted);
+            border-top: 1px solid var(--accent);
+            margin-top: 2rem;
+        }
+
+        .hint {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 1rem;
+        }
+
+        kbd {
+            background: var(--accent);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: var(--fg);
+            font-size: 0.6rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="site-info">
+            <h1>drskc9.github.io</h1>
+            <p>System Dashboard // Root Access</p>
+        </div>
+        <div id="clock">00:00:00</div>
+    </header>
+
+    <main>
+        <div class="content">
+            <div class="section-title">Project Launcher</div>
+            <div class="app-grid" id="app-grid">
+                <!-- Apps will be injected here -->
+            </div>
+            <div class="hint">Press <kbd>/</kbd> to search projects</div>
+        </div>
+
+        <div class="sidebar">
+            <div class="calendar-container">
+                <div class="section-title">Calendar</div>
+                <div id="calendar-month-year"></div>
+                <table id="calendar">
+                    <thead>
+                        <tr>
+                            <th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendar-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 drskc9 // Built for performance
+    </footer>
+
+    <div id="palette-overlay">
+        <div id="palette">
+            <input type="text" id="palette-input" placeholder="Search apps..." autocomplete="off">
+            <div id="palette-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // App Data
+        const apps = [
+            { name: 'Meditation', desc: 'Improve your Focus', url: 'drskc9.github.io/quietfocus' },
+            { name: 'App 2', desc: 'Data visualization suite', url: '#' },
+            { name: 'App 3', desc: 'Personal blog engine', url: '#' },
+            { name: 'App 4', desc: 'Network monitoring utility', url: '#' },
+            { name: 'App 5', desc: 'Code snippet manager', url: '#' },
+            { name: 'App 6', desc: 'System configuration', url: '#' }
+        ];
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Calendar
+        function generateCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            
+            document.getElementById('calendar-month-year').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const tbody = document.getElementById('calendar-body');
+            tbody.innerHTML = '';
+
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    if (i === 0 && j < firstDay) {
+                        cell.classList.add('other-month');
+                        // Optional: Fill with prev month dates
+                    } else if (date > daysInMonth) {
+                        break;
+                    } else {
+                        cell.textContent = date;
+                        if (date === today) {
+                            cell.classList.add('today');
+                        }
+                        date++;
+                    }
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+                if (date > daysInMonth) break;
+            }
+        }
+        generateCalendar();
+
+        // App Launcher
+        function renderApps() {
+            const grid = document.getElementById('app-grid');
+            grid.innerHTML = apps.map(app => `
+                <a href="${app.url}" class="app-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    </div>
+                    <h3>${app.name}</h3>
+                    <p>${app.desc}</p>
+                </a>
+            `).join('');
+        }
+        renderApps();
+
+        // Command Palette
+        const overlay = document.getElementById('palette-overlay');
+        const input = document.getElementById('palette-input');
+        const results = document.getElementById('palette-results');
+        let selectedIndex = 0;
+        let filteredApps = [];
+
+        function openPalette() {
+            overlay.style.display = 'flex';
+            input.value = '';
+            input.focus();
+            updateResults();
+        }
+
+        function closePalette() {
+            overlay.style.display = 'none';
+        }
+
+        function updateResults() {
+            const query = input.value.toLowerCase();
+            filteredApps = apps.filter(app => 
+                app.name.toLowerCase().includes(query) || 
+                app.desc.toLowerCase().includes(query)
+            );
+            
+            selectedIndex = 0;
+            renderResults();
+        }
+
+        function renderResults() {
+            results.innerHTML = filteredApps.map((app, i) => `
+                <div class="palette-item ${i === selectedIndex ? 'selected' : ''}" onclick="window.location.href='${app.url}'">
+                    <span>${app.name}</span>
+                    <span class="shortcut">ENTER</span>
+                </div>
+            `).join('');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && overlay.style.display !== 'flex') {
+                e.preventDefault();
+                openPalette();
+            }
+
+            if (overlay.style.display === 'flex') {
+                if (e.key === 'Escape') {
+                    closePalette();
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % filteredApps.length;
+                    renderResults();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + filteredApps.length) % filteredApps.length;
+                    renderResults();
+                } else if (e.key === 'Enter') {
+                    if (filteredApps[selectedIndex]) {
+                        window.location.href = filteredApps[selectedIndex].url;
+                    }
+                }
+            }
+        });
+
+        input.addEventListener('input', updateResults);
+
+        // Close on click outside
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closePalette();
+        });
+
+    </script>
+</body>
+</html>
